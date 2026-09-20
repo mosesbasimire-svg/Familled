@@ -1,28 +1,17 @@
-FAMILLED — VERSION SITE + SUPABASE EN LIGNE
+APPLICATION ANDROID « NOTRE FAMILLE »
 
-Cette archive contient uniquement ce qui sert au site familial.
+Ce projet Android ouvre la version actuelle du site Familled dans une application native Android.
 
-CONTENU
-- index.html : site web
-- supabase.sql : configuration complète et relançable de Supabase
-- Familled_SUPABASE_FINAL.sql : copie du même script
+Adresse utilisée :
+https://mosesbasimire-svg.github.io/Familled/
 
-DONNEES CONSERVEES EN LIGNE DANS SUPABASE
-- membres de la famille
-- publications
-- commentaires
-- réactions
-- photos de profil
-- photos des publications
+Pour générer l'APK :
+1. Ouvrir ce dossier avec Android Studio.
+2. Attendre la synchronisation Gradle.
+3. Menu Build > Build APK(s).
+4. L'APK sera créé dans app/build/outputs/apk/debug/.
 
-STOCKAGE
-Le bucket Family-media est réservé aux médias du site familial.
-Aucun espace général de fichiers personnels n'est créé.
-
-IMPORTANT
-- Le mot de passe du site reste : DEO
-- Le projet Supabase est qhlrbzqlivkaiydfkkqg
-- Ne supprime pas famille-banner.jpg dans GitHub : le site actuel peut l'utiliser.
-- Le script SQL est à exécuter dans Supabase > SQL Editor.
-
-CORRECTION 20/09/2026 : photos de profil et photos de publications envoyées dans Supabase Storage Family-media; URLs conservées dans Supabase; compression automatique; rechargement après envoi. Exécuter le SQL fourni avant de remplacer index.html.
+Important :
+- L'application utilise Internet.
+- Les données du site restent dans Supabase.
+- Le code du site original n'est pas remplacé.
