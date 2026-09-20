@@ -1,33 +1,26 @@
-FAMILLED — ESPACE EN LIGNE
+FAMILLED — VERSION SITE + SUPABASE EN LIGNE
 
-Cette archive rassemble la version du site et la configuration Supabase mise à jour.
+Cette archive contient uniquement ce qui sert au site familial.
 
-ESPACE EN LIGNE : SUPABASE
-Le projet Supabase qhlrbzqlivkaiydfkkqg sert d'espace en ligne pour conserver les données familiales :
-- 12 membres de la famille
-- photos de profil dans Family-media
-- publications texte/photo
+CONTENU
+- index.html : site web
+- supabase.sql : configuration complète et relançable de Supabase
+- Familled_SUPABASE_FINAL.sql : copie du même script
+
+DONNEES CONSERVEES EN LIGNE DANS SUPABASE
+- membres de la famille
+- publications
 - commentaires
 - réactions
-- dates de création
+- photos de profil
+- photos des publications
 
-SITE : GITHUB PAGES
-Le site reste hébergé séparément sur GitHub Pages.
-Conserver famille-banner.jpg dans le dépôt GitHub.
-
-MOT DE PASSE DU SITE : DEO
-
-CONFIGURATION SUPABASE
-URL : https://qhlrbzqlivkaiydfkkqg.supabase.co
-La clé publishable utilisée par le site est publique côté navigateur et ne doit pas être remplacée par une clé secrète.
-
-INSTALLATION / MISE À JOUR
-1. Dans Supabase > SQL Editor, ouvrir Familled_SUPABASE_TOUT_EN_UN.sql et cliquer Run.
-2. Le script crée/actualise les tables, les 12 membres, les règles RLS et le bucket Family-media.
-3. Dans GitHub, remplacer uniquement index.html par celui fourni ici.
-4. Garder famille-banner.jpg.
-5. L'authentification anonyme doit rester activée dans Supabase (elle l'est déjà dans le projet actuel).
+STOCKAGE
+Le bucket Family-media est réservé aux médias du site familial.
+Aucun espace général de fichiers personnels n'est créé.
 
 IMPORTANT
-Ne jamais mettre une clé secrète/service_role dans index.html.
-Les photos lourdes sont compressées par le site avant envoi.
+- Le mot de passe du site reste : DEO
+- Le projet Supabase est qhlrbzqlivkaiydfkkqg
+- Ne supprime pas famille-banner.jpg dans GitHub : le site actuel peut l'utiliser.
+- Le script SQL est à exécuter dans Supabase > SQL Editor.
