@@ -1,119 +1,40 @@
-const PASSWORD="DEO";
-const WHATSAPP_LINK="https://chat.whatsapp.com/BA3yagA7oK6Ciaz51xmvoA";
-
+const FAMILY_PASSWORD='DEO';
+const WHATSAPP_LINK='https://chat.whatsapp.com/BA3yagA7oK6Ciaz51xmvoA';
+const DB_NAME='famille_deo_v4';
 const members=[
-["Déo Vumilia Buuma","Père","26/12/1972","Père de la famille, gradué en sciences de l'éducation et enseignant dans une école secondaire."],
-["Sirire Masirika Francine","Mère","01/03/1978","Mère de la famille, commerçante et cultivatrice."],
-["Ameshinda Vumilia Alliance","Fils aîné — décédé","03/11/1996","Fils aîné de la famille. Il est décédé célibataire, après avoir atteint le niveau de Bac 2 en management. Que son âme repose en paix."],
-["Salama Namwangasa Yvette","2e enfant — fille","14/07/2000","Infirmière, graduée de l'Institut Supérieur des Techniques Médicales de Bukavu. Elle est mariée à Justin Ushindi."],
-["Buuma Vumilia Benjamin","3e fils","10/05/2002","Laborantin, licencié en laboratoire de l'Institut Supérieur des Techniques Médicales de Bukavu."],
-["ATUKUZWE Vumilia Jonathan","4e fils","22/05/2005","Informaticien, licencié de l'Institut Supérieur Pédagogique de Bukavu."],
-["Basimire Vumilia Moïse","5e fils","18/09/2007","Économiste, licencié de l'Université Officielle de Bukavu."],
-["Barikiwa Vumilia Angélique","6e fille","20/03/2010","Commercialiste de l'Institut Kando."],
-["Bwaashi Vumilia Gloire","7e fils","16/09/2012","Commercialiste de l'Institut Kando."],
-["Chisiki Vumilia Bien-aimé","8e fils","16/10/2014","Histoire à compléter…"],
-["Furaha Vumilia Noela","9e fille","26/12/2016","Histoire à compléter…"],
-["Asifiwe Vumilia Victoire","10e enfant — fils, cadet","07/07/2018","Cadet de la famille."]
+{id:1,name:'Déo Vumilia Buuma',role:'Père',date:'26/12/1972',bio:"Père de la famille, gradué en sciences de l'éducation et enseignant dans une école secondaire."},
+{id:2,name:'Sirire Masirika Francine',role:'Mère',date:'01/03/1978',bio:'Mère de la famille, commerçante et cultivatrice.'},
+{id:3,name:'Ameshinda Vumilia Alliance',role:'Fils aîné • décédé',date:'03/11/1996',bio:"Fils aîné de la famille. Il est décédé célibataire, après avoir atteint le niveau de Bac 2 en management. Que son âme repose en paix."},
+{id:4,name:'Salama Namwangasa Yvette',role:'2e enfant • fille',date:'14/07/2000',bio:'Infirmière, graduée de l’Institut Supérieur des Techniques Médicales de Bukavu. Elle est mariée à Justin Ushindi.'},
+{id:5,name:'Buuma Vumilia Benjamin',role:'3e fils',date:'10/05/2002',bio:'Laborantin, licencié en laboratoire de l’Institut Supérieur des Techniques Médicales de Bukavu.'},
+{id:6,name:'ATUKUZWE Vumilia Jonathan',role:'4e fils',date:'22/05/2005',bio:'Informaticien, licencié de l’Institut Supérieur Pédagogique de Bukavu.'},
+{id:7,name:'Basimire Vumilia Moïse',role:'5e fils',date:'18/09/2007',bio:"Économiste, licencié de l'Université Officielle de Bukavu."},
+{id:8,name:'Barikiwa Vumilia Angélique',role:'6e fille',date:'20/03/2010',bio:'Commercialiste de l’Institut Kando.'},
+{id:9,name:'Bwaashi Vumilia Gloire',role:'7e fils',date:'16/09/2012',bio:'Commercialiste de l’Institut Kando.'},
+{id:10,name:'Chisiki Vumilia Bien-aimé',role:'8e fils',date:'16/10/2014',bio:'Histoire à compléter…'},
+{id:11,name:'Furaha Vumilia Noela',role:'9e fille',date:'26/12/2016',bio:'Histoire à compléter…'},
+{id:12,name:'Asifiwe Vumilia Victoire',role:'10e enfant • fils, cadet',date:'07/07/2018',bio:'Cadet de la famille.'}
 ];
-
-const DB_NAME="famille-deo-v3",DB_VERSION=1,STORE="photos";
-let db;
-
-const $=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-
-function openDB(){
- return new Promise((resolve,reject)=>{
-  const r=indexedDB.open(DB_NAME,DB_VERSION);
-  r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:"id",autoIncrement:true})};
-  r.onsuccess=()=>{db=r.result;resolve(db)};
-  r.onerror=()=>reject(r.error);
- });
+const $=id=>document.getElementById(id); const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function openDB(){return new Promise((res,rej)=>{const r=indexedDB.open(DB_NAME,1);r.onupgradeneeded=()=>{const db=r.result;['profiles','memories','posts'].forEach(n=>{if(!db.objectStoreNames.contains(n))db.createObjectStore(n,{keyPath:'id',autoIncrement:true})});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 }
-function idbGetAll(){return new Promise((res,rej)=>{const r=db.transaction(STORE,"readonly").objectStore(STORE).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function idbPut(v){return new Promise((res,rej)=>{const r=db.transaction(STORE,"readwrite").objectStore(STORE).put(v);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
-function idbDelete(id){return new Promise((res,rej)=>{const r=db.transaction(STORE,"readwrite").objectStore(STORE).delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
-async function getPhoto(type,index){const all=await idbGetAll();return all.find(x=>x.type===type&&x.index===index)}
-async function compressImage(file,maxSide,quality=.78){
- return new Promise((resolve,reject)=>{
-  if(!file||!file.type.startsWith("image/"))return reject(new Error("Fichier image invalide"));
-  const reader=new FileReader();
-  reader.onerror=()=>reject(new Error("Lecture impossible"));
-  reader.onload=()=>{
-   const img=new Image();
-   img.onload=()=>{
-    let w=img.naturalWidth,h=img.naturalHeight,s=Math.min(1,maxSide/Math.max(w,h));
-    w=Math.max(1,Math.round(w*s));h=Math.max(1,Math.round(h*s));
-    const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
-    c.toBlob(b=>{if(!b)return reject(new Error("Compression impossible"));resolve(b)}, "image/jpeg",quality);
-   };
-   img.onerror=()=>reject(new Error("Image invalide"));img.src=reader.result;
-  };
-  reader.readAsDataURL(file);
- });
-}
-function blobURL(blob){return URL.createObjectURL(blob)}
-async function login(){
- if($("password").value!==PASSWORD){$("error").style.display="block";return}
- $("login").style.display="none";$("site").style.display="block";$("logout").style.display="block";$("welcome").style.display="grid";
- await openDB();await render();
-}
-async function render(){
- const all=await idbGetAll();
- $("members").innerHTML=members.map((m,i)=>`<article class="member" id="member-${i}">
-  <div class="profile-wrap" id="profile-wrap-${i}"><div class="member-photo">👤</div></div>
-  <h3>${esc(m[0])}</h3><b>${esc(m[1])}</b> — ${esc(m[2])}<p>${esc(m[3])}</p>
-  <div class="actions"><input id="file-${i}" type="file" accept="image/*" hidden>
-  <button class="small" type="button" data-pick="${i}">📷 Ajouter / changer</button>
-  <button class="small delete" type="button" data-delete="${i}">🗑️ Supprimer</button></div>
- </article>`).join("");
- for(let i=0;i<members.length;i++){
-  const p=all.find(x=>x.type==="profile"&&x.index===i);
-  const wrap=$("profile-wrap-"+i);
-  if(p){const img=document.createElement("img");img.className="member-photo";img.alt="Photo de "+members[i][0];img.src=blobURL(p.blob);img.onclick=()=>openViewer(img.src,members[i][0]);wrap.replaceChildren(img)}
-  $("file-"+i).onchange=e=>saveProfile(i,e.target.files[0]);
- }
- document.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>$("file-"+b.dataset.pick).click());
- document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>deleteProfile(Number(b.dataset.delete)));
- await renderGallery();
- $("whatsapp").href=WHATSAPP_LINK;
-}
-async function saveProfile(i,file){
- if(!file)return;
- try{
-  const blob=await compressImage(file,1000,.82);
-  const old=await getPhoto("profile",i);if(old)await idbDelete(old.id);
-  await idbPut({type:"profile",index:i,blob,name:file.name,updatedAt:Date.now()});
-  await render();
- }catch(e){alert("Cette photo n'a pas pu être enregistrée. Essayez une autre image.");}
-}
-async function deleteProfile(i){const p=await getPhoto("profile",i);if(p){await idbDelete(p.id);await render()}}
-async function renderGallery(){
- const all=(await idbGetAll()).filter(x=>x.type==="memory").sort((a,b)=>b.createdAt-a.createdAt);
- $("gallery").innerHTML="";
- for(const p of all){
-  const f=document.createElement("figure"),img=document.createElement("img"),btn=document.createElement("button"),cap=document.createElement("figcaption");
-  img.src=blobURL(p.blob);img.alt=p.caption||"Souvenir";img.onclick=()=>openViewer(img.src,p.caption||"Souvenir");
-  btn.textContent="×";btn.title="Supprimer";btn.onclick=async()=>{await idbDelete(p.id);await renderGallery()};
-  cap.textContent=p.caption||"Souvenir de famille";f.append(img,btn,cap);$("gallery").appendChild(f);
- }
-}
-async function addPhotos(){
- const files=[...$("photosInput").files];if(!files.length){alert("Choisissez au moins une photo.");return}
- $("galleryStatus").textContent="Préparation des photos…";
- try{
-  for(const file of files){const blob=await compressImage(file,1800,.80);await idbPut({type:"memory",blob,caption:$("caption").value.trim(),name:file.name,createdAt:Date.now()})}
-  $("photosInput").value="";$("caption").value="";await renderGallery();$("galleryStatus").textContent=`${files.length} photo(s) ajoutée(s).`;
- }catch(e){$("galleryStatus").textContent="Une photo n'a pas pu être enregistrée.";alert("Impossible d'enregistrer cette image sur cet appareil.")}
-}
-function openViewer(src,title){$("viewerImg").src=src;$("viewerTitle").textContent=title||"";$("viewer").style.display="flex"}
-function closeViewer(){$("viewer").style.display="none";$("viewerImg").src=""}
-
-$("enter").onclick=login;
-$("password").onkeydown=e=>{if(e.key==="Enter")login()};
-$("closeWelcome").onclick=()=>$("welcome").style.display="none";
-$("logout").onclick=()=>location.reload();
-$("addPhotos").onclick=addPhotos;
-$("viewerClose").onclick=closeViewer;
-$("viewer").onclick=e=>{if(e.target===$("viewer"))closeViewer()};
-document.addEventListener("keydown",e=>{if(e.key==="Escape")closeViewer()});
+async function all(store){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly'),r=tx.objectStore(store).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function put(store,obj){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite'),r=tx.objectStore(store).put(obj);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+async function del(store,id){const db=await openDB();return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite'),r=tx.objectStore(store).delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+function dateNow(){return new Date().toLocaleString('fr-FR',{dateStyle:'medium',timeStyle:'short'})}
+async function compressImage(file,maxSide=1600,quality=.78){if(!file)return null;if(!file.type.startsWith('image/'))throw Error('Le fichier choisi n’est pas une image.');const url=URL.createObjectURL(file);try{const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(Error('Image illisible'));i.src=url});let w=img.naturalWidth,h=img.naturalHeight;const scale=Math.min(1,maxSide/Math.max(w,h));w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);return await new Promise((res,rej)=>c.toBlob(b=>b?res(b):rej(Error('Compression impossible')),'image/jpeg',quality))}finally{URL.revokeObjectURL(url)}}
+function blobURL(blob){return blob?URL.createObjectURL(blob):''}
+function initials(name){return name.split(/\s+/).map(x=>x[0]).slice(0,2).join('').toUpperCase()}
+async function profileMap(){const a=await all('profiles');return new Map(a.map(x=>[x.memberId,x]))}
+async function renderMembers(){const map=await profileMap();$('membersGrid').innerHTML=members.map(m=>{const p=map.get(m.id);const src=p?.blob?blobURL(p.blob):'';return `<article class="card member"><div class="avatar" data-view-src="${src}" data-view-caption="${esc(m.name)}">${src?`<img src="${src}" alt="${esc(m.name)}">`:`<span>${initials(m.name)}</span>`}</div><h3>${esc(m.name)}</h3><div class="muted">${esc(m.role)} • ${esc(m.date)}</div><p class="bio">${esc(m.bio)}</p><div class="actions"><label class="primary">📷 ${p?'Changer':'Ajouter'}<input class="profile-file" data-member="${m.id}" type="file" accept="image/*" hidden></label>${p?`<button class="danger delete-profile" data-member="${m.id}">🗑️ Supprimer</button>`:''}</div></article>`}).join('')||''}
+async function renderMemories(){const a=(await all('memories')).sort((x,y)=>y.created-x.created);$('gallery').innerHTML=a.length?a.map(m=>{const u=blobURL(m.blob);return `<article class="card"><img class="memory-img" src="${u}" data-view-src="${u}" data-view-caption="${esc(m.caption||'Souvenir de famille')}"><p>${esc(m.caption||'Souvenir de famille')}</p><div class="meta">${esc(m.author||'Membre de la famille')} • ${esc(m.date)}</div><button class="danger delete-memory" data-id="${m.id}">🗑️ Supprimer</button></article>`}).join(''):`<div class="composer"><p class="muted">Aucun souvenir pour le moment. Ajoutez la première photo ❤️</p></div>`}
+async function renderPosts(){const posts=(await all('posts')).sort((a,b)=>b.created-a.created);const pm=await profileMap();$('posts').innerHTML=posts.length?posts.map(p=>{const prof=pm.get(p.memberId),pu=prof?.blob?blobURL(prof.blob):'';const reactions=p.reactions||{};const comments=p.comments||[];return `<article class="post"><div class="post-head"><div class="mini">${pu?`<img src="${pu}" alt="">`:initials(p.author||'Membre')}</div><div><h3>${esc(p.author||'Membre de la famille')}</h3><div class="muted">${esc(p.date)}</div></div></div>${p.text?`<p>${esc(p.text)}</p>`:''}${p.blob?`<img class="post-photo" src="${blobURL(p.blob)}" data-view-src="${blobURL(p.blob)}" data-view-caption="Publication de ${esc(p.author||'la famille')}">`:''}<div class="reactions">${['❤️','👍','😂','😢','🙏','🎉'].map(r=>`<button class="reaction" data-react="${esc(r)}" data-post="${p.id}">${r} ${reactions[r]||0}</button>`).join('')}</div>${comments.map(c=>`<div class="comment"><strong>${esc(c.author)}</strong> <span class="muted">${esc(c.date)}</span><div>${esc(c.text)}</div></div>`).join('')}<div class="comment-form"><input class="comment-input" data-comment="${p.id}" placeholder="Écrire un commentaire..."><button class="ghost add-comment" data-post="${p.id}">Publier</button></div><div style="margin-top:9px"><button class="danger delete-post" data-id="${p.id}">🗑️ Supprimer</button></div></article>`}).join(''):`<div class="composer"><p class="muted">Aucune publication pour le moment. Soyez le premier à partager avec la famille ❤️</p></div>`}
+function showSection(id){['feed','members','memories'].forEach(x=>$(x).classList.toggle('hidden',x!==id));window.scrollTo({top:0,behavior:'smooth'})}
+async function login(){if($('password').value.trim()!==FAMILY_PASSWORD){$('loginMsg').textContent='Mot de passe incorrect.';return}$('login').classList.add('hidden');$('app').classList.remove('hidden');sessionStorage.setItem('familyLogged','1');await Promise.all([renderMembers(),renderMemories(),renderPosts()]);showSection('feed')}
+$('loginBtn').onclick=login;$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>showSection(b.dataset.go));$('logoutBtn').onclick=()=>{sessionStorage.removeItem('familyLogged');location.reload()};$('waBtn').onclick=()=>location.href=WHATSAPP_LINK;
+$('publishBtn').onclick=async()=>{try{const text=$('postText').value.trim(),f=$('postImage').files[0];if(!text&&!f)return alert('Ajoutez un message ou une photo.');let blob=null;if(f)blob=await compressImage(f);await put('posts',{author:'Membre de la famille',memberId:0,text,blob,date:dateNow(),created:Date.now(),reactions:{},comments:[]});$('postText').value='';$('postImage').value='';await renderPosts()}catch(e){alert(e.message)}};
+$('addMemoryBtn').onclick=async()=>{try{const f=$('memoryImage').files[0],caption=$('memoryCaption').value.trim();if(!f)return alert('Choisissez une photo.');const blob=await compressImage(f);await put('memories',{author:'Membre de la famille',blob,caption,date:dateNow(),created:Date.now()});$('memoryImage').value='';$('memoryCaption').value='';await renderMemories()}catch(e){alert(e.message)}};
+document.addEventListener('change',async e=>{const f=e.target.closest('.profile-file');if(!f)return;try{const file=f.files[0];if(!file)return;const blob=await compressImage(file,1200,.8);await put('profiles',{memberId:Number(f.dataset.member),blob,date:dateNow()});await renderMembers();await renderPosts()}catch(err){alert(err.message)}});
+document.addEventListener('click',async e=>{const prof=e.target.closest('.delete-profile');if(prof){if(confirm('Supprimer cette photo de profil ?')){const map=await profileMap(),p=map.get(Number(prof.dataset.member));if(p)await del('profiles',p.id);await renderMembers();await renderPosts()}return}const dm=e.target.closest('.delete-memory');if(dm){if(confirm('Supprimer ce souvenir ?')){await del('memories',Number(dm.dataset.id));await renderMemories()}return}const dp=e.target.closest('.delete-post');if(dp){if(confirm('Supprimer cette publication et ses commentaires ?')){await del('posts',Number(dp.dataset.id));await renderPosts()}return}const rr=e.target.closest('[data-react]');if(rr){const posts=await all('posts'),p=posts.find(x=>x.id===Number(rr.dataset.post));if(!p)return;p.reactions=p.reactions||{};const r=rr.dataset.react;p.reactions[r]=(p.reactions[r]||0)+1;await put('posts',p);await renderPosts();return}const ac=e.target.closest('.add-comment');if(ac){const inp=document.querySelector(`[data-comment="${ac.dataset.post}"]`);if(!inp||!inp.value.trim())return;const posts=await all('posts'),p=posts.find(x=>x.id===Number(ac.dataset.post));if(!p)return;p.comments=p.comments||[];p.comments.push({author:'Membre de la famille',text:inp.value.trim(),date:dateNow()});await put('posts',p);await renderPosts();return}const v=e.target.closest('[data-view-src]');if(v&&v.dataset.viewSrc)openViewer(v.dataset.viewSrc,v.dataset.viewCaption||'')});
+function openViewer(src,caption){$('viewerImg').src=src;$('viewerCaption').textContent=caption;$('viewer').classList.add('show')}$('closeViewer').onclick=()=>{$('viewer').classList.remove('show');$('viewerImg').src=''};$('viewer').addEventListener('click',e=>{if(e.target===$('viewer'))$('closeViewer').click()});
+if(sessionStorage.getItem('familyLogged')==='1')login();
