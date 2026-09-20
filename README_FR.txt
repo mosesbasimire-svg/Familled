@@ -1,19 +1,12 @@
-FAMILLED — VERSION FINALE STABLE
-20/09/2026
+FAMILLED — VERSION SUPABASE FINALE
 
-Cette version est conçue pour que la page s'ouvre même si la bibliothèque Supabase tarde à charger.
+Contenu :
+- index.html : nouvelle page principale, avec connexion anonyme Supabase, publications, commentaires et réactions.
+- supabase_members_and_storage.sql : correctif à exécuter dans Supabase SQL Editor.
 
-CONTENU
-- index.html : version finale stable
-- Familled_CORRECTION_COMPLETE.sql : corrections Supabase
-
-IMPORTANT
-- Conserver le fichier famille-banner.jpg déjà présent dans le dépôt GitHub.
-- Ne pas supprimer famille-banner.jpg.
-- Mot de passe du site : DEO
-
-MISE EN LIGNE
-1. Remplacer uniquement index.html dans GitHub par celui de ce dossier.
-2. Conserver famille-banner.jpg.
-3. Si les corrections SQL n'ont pas encore été exécutées, exécuter Familled_CORRECTION_COMPLETE.sql dans Supabase > SQL Editor.
-4. Attendre le déploiement GitHub Pages puis recharger le site.
+IMPORTANT :
+1. Conserver le fichier famille-banner.jpg déjà présent dans le dépôt GitHub.
+2. Dans Supabase > SQL Editor, exécuter UNE FOIS le fichier supabase_members_and_storage.sql.
+3. Remplacer l'ancien index.html du dépôt GitHub par celui-ci.
+4. Ne pas utiliser index_supabase.html comme nom final : GitHub Pages utilise index.html.
+5. Le site demande le mot de passe DEO avant l'affichage. Ce mot de passe n'est pas une sécurité forte ; l'accès réel aux données est contrôlé par Supabase/RLS.
