@@ -1,15 +1,19 @@
-VERSION CORRIGEE FAMILLED - 20/09/2026
+FAMILLED — VERSION FINALE STABLE
+20/09/2026
 
-Cette version corrige le chargement Supabase :
-- connexion anonyme sans attendre une ancienne session
-- délai de sécurité de 12 secondes
-- message d'erreur visible si Supabase ne répond pas
-- bouton Réessayer
-- chargement visible des membres/publications
-- compression des photos conservée
-- mot de passe du site : DEO
+Cette version est conçue pour que la page s'ouvre même si la bibliothèque Supabase tarde à charger.
 
-IMPORTANT :
-1. Remplacer le index.html du dépôt GitHub par celui-ci.
-2. Exécuter Familled_CORRECTION_COMPLETE.sql dans Supabase SQL Editor si ce n'est pas déjà fait.
-3. Conserver famille-banner.jpg dans le dépôt GitHub.
+CONTENU
+- index.html : version finale stable
+- Familled_CORRECTION_COMPLETE.sql : corrections Supabase
+
+IMPORTANT
+- Conserver le fichier famille-banner.jpg déjà présent dans le dépôt GitHub.
+- Ne pas supprimer famille-banner.jpg.
+- Mot de passe du site : DEO
+
+MISE EN LIGNE
+1. Remplacer uniquement index.html dans GitHub par celui de ce dossier.
+2. Conserver famille-banner.jpg.
+3. Si les corrections SQL n'ont pas encore été exécutées, exécuter Familled_CORRECTION_COMPLETE.sql dans Supabase > SQL Editor.
+4. Attendre le déploiement GitHub Pages puis recharger le site.
