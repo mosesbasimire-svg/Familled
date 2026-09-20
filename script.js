@@ -1,9 +1,7 @@
-// ================= MODIFICATIONS FACILES =================
-const PASSWORD = "DEO";
-const WHATSAPP_LINK = "COLLEZ-ICI-LE-LIEN-DU-GROUPE";
-// ==========================================================
+const PASSWORD="DEO";
+const WHATSAPP_LINK="https://chat.whatsapp.com/BA3yagA7oK6Ciaz51xmvoA";
 
-const members = [
+const members=[
 ["Déo Vumilia Buuma","Père","26/12/1972","Père de la famille, gradué en sciences de l'éducation et enseignant dans une école secondaire."],
 ["Sirire Masirika Francine","Mère","01/03/1978","Mère de la famille, commerçante et cultivatrice."],
 ["Ameshinda Vumilia Alliance","Fils aîné — décédé","03/11/1996","Fils aîné de la famille. Il est décédé célibataire, après avoir atteint le niveau de Bac 2 en management. Que son âme repose en paix."],
@@ -18,120 +16,104 @@ const members = [
 ["Asifiwe Vumilia Victoire","10e enfant — fils, cadet","07/07/2018","Cadet de la famille."]
 ];
 
+const DB_NAME="famille-deo-v3",DB_VERSION=1,STORE="photos";
+let db;
+
+const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
-const key=i=>"member-photo-"+i;
 
-function compressImage(file, maxSize=1600, quality=0.78){
-  return new Promise((resolve,reject)=>{
-    if(!file || !file.type.startsWith("image/")){
-      reject(new Error("Fichier non image")); return;
-    }
-    const reader=new FileReader();
-    reader.onerror=()=>reject(new Error("Lecture impossible"));
-    reader.onload=()=>{
-      const img=new Image();
-      img.onload=()=>{
-        let w=img.naturalWidth, h=img.naturalHeight;
-        const scale=Math.min(1,maxSize/Math.max(w,h));
-        w=Math.max(1,Math.round(w*scale));
-        h=Math.max(1,Math.round(h*scale));
-        const canvas=document.createElement("canvas");
-        canvas.width=w; canvas.height=h;
-        canvas.getContext("2d").drawImage(img,0,0,w,h);
-        canvas.toBlob(blob=>{
-          if(!blob){reject(new Error("Compression impossible"));return;}
-          const r2=new FileReader();
-          r2.onload=()=>resolve(r2.result);
-          r2.onerror=()=>reject(new Error("Conversion impossible"));
-          r2.readAsDataURL(blob);
-        },"image/jpeg",quality);
-      };
-      img.onerror=()=>reject(new Error("Image invalide"));
-      img.src=reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
+function openDB(){
+ return new Promise((resolve,reject)=>{
+  const r=indexedDB.open(DB_NAME,DB_VERSION);
+  r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains(STORE))r.result.createObjectStore(STORE,{keyPath:"id",autoIncrement:true})};
+  r.onsuccess=()=>{db=r.result;resolve(db)};
+  r.onerror=()=>reject(r.error);
+ });
 }
-
-function login(){
-  if(document.getElementById("password").value!==PASSWORD){
-    document.getElementById("error").style.display="block"; return;
-  }
-  document.getElementById("login").style.display="none";
-  document.getElementById("site").style.display="block";
-  document.getElementById("logout").style.display="block";
-  render();
-  document.getElementById("welcome").style.display="grid";
+function idbGetAll(){return new Promise((res,rej)=>{const r=db.transaction(STORE,"readonly").objectStore(STORE).getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+function idbPut(v){return new Promise((res,rej)=>{const r=db.transaction(STORE,"readwrite").objectStore(STORE).put(v);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+function idbDelete(id){return new Promise((res,rej)=>{const r=db.transaction(STORE,"readwrite").objectStore(STORE).delete(id);r.onsuccess=()=>res();r.onerror=()=>rej(r.error)})}
+async function getPhoto(type,index){const all=await idbGetAll();return all.find(x=>x.type===type&&x.index===index)}
+async function compressImage(file,maxSide,quality=.78){
+ return new Promise((resolve,reject)=>{
+  if(!file||!file.type.startsWith("image/"))return reject(new Error("Fichier image invalide"));
+  const reader=new FileReader();
+  reader.onerror=()=>reject(new Error("Lecture impossible"));
+  reader.onload=()=>{
+   const img=new Image();
+   img.onload=()=>{
+    let w=img.naturalWidth,h=img.naturalHeight,s=Math.min(1,maxSide/Math.max(w,h));
+    w=Math.max(1,Math.round(w*s));h=Math.max(1,Math.round(h*s));
+    const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);
+    c.toBlob(b=>{if(!b)return reject(new Error("Compression impossible"));resolve(b)}, "image/jpeg",quality);
+   };
+   img.onerror=()=>reject(new Error("Image invalide"));img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+ });
 }
-
-function render(){
-  document.getElementById("members").innerHTML=members.map((m,i)=>{
-    const p=localStorage.getItem(key(i));
-    return `<article class="member">
-    ${p?`<img class="member-photo" src="${p}" alt="Photo">`:`<div class="member-photo">👤</div>`}
-    <h3>${esc(m[0])}</h3><b>${esc(m[1])}</b> — ${esc(m[2])}<p>${esc(m[3])}</p>
-    <div class="actions">
-     <input id="file-${i}" type="file" accept="image/*" hidden>
-     <button class="small" onclick="document.getElementById('file-${i}').click()">📷 Ajouter / changer</button>
-     ${p?`<button class="small delete" onclick="removeMemberPhoto(${i})">🗑️ Supprimer</button>`:""}
-    </div></article>`;
-  }).join("");
-  members.forEach((_,i)=>document.getElementById("file-"+i).addEventListener("change",e=>saveMemberPhoto(i,e.target.files[0])));
-  renderGallery();
-  const w=document.getElementById("whatsapp");
-  if(WHATSAPP_LINK.startsWith("https://"))w.href=WHATSAPP_LINK;
-  else w.onclick=e=>{e.preventDefault();alert("Ajoutez le lien WhatsApp en haut de script.js.");};
+function blobURL(blob){return URL.createObjectURL(blob)}
+async function login(){
+ if($("password").value!==PASSWORD){$("error").style.display="block";return}
+ $("login").style.display="none";$("site").style.display="block";$("logout").style.display="block";$("welcome").style.display="grid";
+ await openDB();await render();
 }
-
-async function saveMemberPhoto(i,file){
-  if(!file)return;
-  try{
-    const data=await compressImage(file,800,0.78);
-    localStorage.setItem(key(i),data);
-    render();
-  }catch(err){
-    alert("Impossible de traiter cette image. Essayez une autre photo.");
-  }
+async function render(){
+ const all=await idbGetAll();
+ $("members").innerHTML=members.map((m,i)=>`<article class="member" id="member-${i}">
+  <div class="profile-wrap" id="profile-wrap-${i}"><div class="member-photo">👤</div></div>
+  <h3>${esc(m[0])}</h3><b>${esc(m[1])}</b> — ${esc(m[2])}<p>${esc(m[3])}</p>
+  <div class="actions"><input id="file-${i}" type="file" accept="image/*" hidden>
+  <button class="small" type="button" data-pick="${i}">📷 Ajouter / changer</button>
+  <button class="small delete" type="button" data-delete="${i}">🗑️ Supprimer</button></div>
+ </article>`).join("");
+ for(let i=0;i<members.length;i++){
+  const p=all.find(x=>x.type==="profile"&&x.index===i);
+  const wrap=$("profile-wrap-"+i);
+  if(p){const img=document.createElement("img");img.className="member-photo";img.alt="Photo de "+members[i][0];img.src=blobURL(p.blob);img.onclick=()=>openViewer(img.src,members[i][0]);wrap.replaceChildren(img)}
+  $("file-"+i).onchange=e=>saveProfile(i,e.target.files[0]);
+ }
+ document.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>$("file-"+b.dataset.pick).click());
+ document.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>deleteProfile(Number(b.dataset.delete)));
+ await renderGallery();
+ $("whatsapp").href=WHATSAPP_LINK;
 }
-
-function removeMemberPhoto(i){localStorage.removeItem(key(i));render()}
-
-function renderGallery(){
-  const a=JSON.parse(localStorage.getItem("family-gallery")||"[]");
-  document.getElementById("gallery").innerHTML=a.map((p,i)=>
-    `<figure><img src="${p.data}" alt="Souvenir"><button onclick="removeGallery(${i})">×</button><figcaption>${esc(p.caption||"Souvenir de famille")}</figcaption></figure>`
-  ).join("");
+async function saveProfile(i,file){
+ if(!file)return;
+ try{
+  const blob=await compressImage(file,1000,.82);
+  const old=await getPhoto("profile",i);if(old)await idbDelete(old.id);
+  await idbPut({type:"profile",index:i,blob,name:file.name,updatedAt:Date.now()});
+  await render();
+ }catch(e){alert("Cette photo n'a pas pu être enregistrée. Essayez une autre image.");}
 }
-
+async function deleteProfile(i){const p=await getPhoto("profile",i);if(p){await idbDelete(p.id);await render()}}
+async function renderGallery(){
+ const all=(await idbGetAll()).filter(x=>x.type==="memory").sort((a,b)=>b.createdAt-a.createdAt);
+ $("gallery").innerHTML="";
+ for(const p of all){
+  const f=document.createElement("figure"),img=document.createElement("img"),btn=document.createElement("button"),cap=document.createElement("figcaption");
+  img.src=blobURL(p.blob);img.alt=p.caption||"Souvenir";img.onclick=()=>openViewer(img.src,p.caption||"Souvenir");
+  btn.textContent="×";btn.title="Supprimer";btn.onclick=async()=>{await idbDelete(p.id);await renderGallery()};
+  cap.textContent=p.caption||"Souvenir de famille";f.append(img,btn,cap);$("gallery").appendChild(f);
+ }
+}
 async function addPhotos(){
-  const files=[...document.getElementById("photosInput").files];
-  if(!files.length){alert("Choisissez une photo.");return}
-  const caption=document.getElementById("caption").value;
-  const a=JSON.parse(localStorage.getItem("family-gallery")||"[]");
-  try{
-    for(const f of files){
-      const data=await compressImage(f,1600,0.78);
-      a.push({data,caption});
-    }
-    localStorage.setItem("family-gallery",JSON.stringify(a));
-    renderGallery();
-    document.getElementById("photosInput").value="";
-    document.getElementById("caption").value="";
-    alert("Photo(s) ajoutée(s) avec succès.");
-  }catch(err){
-    alert("Stockage insuffisant. Supprimez quelques anciens souvenirs puis réessayez.");
-  }
+ const files=[...$("photosInput").files];if(!files.length){alert("Choisissez au moins une photo.");return}
+ $("galleryStatus").textContent="Préparation des photos…";
+ try{
+  for(const file of files){const blob=await compressImage(file,1800,.80);await idbPut({type:"memory",blob,caption:$("caption").value.trim(),name:file.name,createdAt:Date.now()})}
+  $("photosInput").value="";$("caption").value="";await renderGallery();$("galleryStatus").textContent=`${files.length} photo(s) ajoutée(s).`;
+ }catch(e){$("galleryStatus").textContent="Une photo n'a pas pu être enregistrée.";alert("Impossible d'enregistrer cette image sur cet appareil.")}
 }
+function openViewer(src,title){$("viewerImg").src=src;$("viewerTitle").textContent=title||"";$("viewer").style.display="flex"}
+function closeViewer(){$("viewer").style.display="none";$("viewerImg").src=""}
 
-function removeGallery(i){
-  const a=JSON.parse(localStorage.getItem("family-gallery")||"[]");
-  a.splice(i,1);
-  localStorage.setItem("family-gallery",JSON.stringify(a));
-  renderGallery();
-}
-
-document.getElementById("enter").onclick=login;
-document.getElementById("password").onkeydown=e=>{if(e.key==="Enter")login()};
-document.getElementById("closeWelcome").onclick=()=>document.getElementById("welcome").style.display="none";
-document.getElementById("logout").onclick=()=>location.reload();
-document.getElementById("addPhotos").onclick=addPhotos;
+$("enter").onclick=login;
+$("password").onkeydown=e=>{if(e.key==="Enter")login()};
+$("closeWelcome").onclick=()=>$("welcome").style.display="none";
+$("logout").onclick=()=>location.reload();
+$("addPhotos").onclick=addPhotos;
+$("viewerClose").onclick=closeViewer;
+$("viewer").onclick=e=>{if(e.target===$("viewer"))closeViewer()};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeViewer()});
