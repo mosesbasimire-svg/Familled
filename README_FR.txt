@@ -1,26 +1,15 @@
-FAMILLED — VERSION COMPLETE
-Date : 20/09/2026
+VERSION CORRIGEE FAMILLED - 20/09/2026
 
-CONTENU DU ZIP
-- index.html : version corrigée du site, avec Supabase, publications, photos, commentaires, réactions et compression automatique des grandes images.
-- Familled_CORRECTION_COMPLETE.sql : corrections Supabase à exécuter dans SQL Editor.
+Cette version corrige le chargement Supabase :
+- connexion anonyme sans attendre une ancienne session
+- délai de sécurité de 12 secondes
+- message d'erreur visible si Supabase ne répond pas
+- bouton Réessayer
+- chargement visible des membres/publications
+- compression des photos conservée
+- mot de passe du site : DEO
 
-INSTALLATION GITHUB PAGES
-1. Ouvrir le dépôt GitHub Familled.
-2. Remplacer l'ancien index.html par celui de ce ZIP.
-3. Conserver le fichier famille-banner.jpg déjà présent dans le dépôt.
-4. Commit / enregistrer la modification sur la branche main.
-5. GitHub Pages utilise main / (root).
-
-SUPABASE
-1. Ouvrir Supabase > SQL Editor.
-2. Coller le contenu de Familled_CORRECTION_COMPLETE.sql.
-3. Cliquer sur Run.
-
-MOT DE PASSE DU SITE
-DEO
-
-IMPORTANT
-- Ne pas remplacer famille-banner.jpg par le fichier SQL.
-- Le fichier index.html est autonome et n'a pas besoin de script.js pour fonctionner.
-- Le site utilise le projet Supabase déjà configuré.
+IMPORTANT :
+1. Remplacer le index.html du dépôt GitHub par celui-ci.
+2. Exécuter Familled_CORRECTION_COMPLETE.sql dans Supabase SQL Editor si ce n'est pas déjà fait.
+3. Conserver famille-banner.jpg dans le dépôt GitHub.

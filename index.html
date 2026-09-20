@@ -32,7 +32,7 @@
 <div id="modal" class="modal"><div id="box" class="box"></div></div>
 <script>
 const URL="https://qhlrbzqlivkaiydfkkqg.supabase.co",KEY="sb_publishable_k-TqofekxbnTFFmajug_lQ_bitz7C_9";
-const sb=supabase.createClient(URL,KEY);
+const sb=supabase.createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 const N=["Déo Vumilia Buuma","Sirire Masirika Francine","Ameshinda Vumilia Alliance","Salama Namwangasa Yvette","Buuma Vumilia Benjamin","ATUKUZWE Vumilia Jonathan","Basimire Vumilia Moïse","Barikiwa Vumilia Angélique","Bwaashi Vumilia Gloire","Chisiki Vumilia Bien-aimé","Furaha Vumilia Noela","Asifiwe Vumilia Victoire"];
 const I=[["Père","26/12/1972"],["Mère","01/03/1978"],["Fils aîné","03/11/1996"],["2e enfant","14/07/2000"],["3e fils","10/05/2002"],["4e fils","22/05/2005"],["5e fils","18/09/2007"],["6e fille","20/03/2010"],["7e fils","16/09/2012"],["8e fils","16/10/2014"],["9e fille","26/12/2016"],["10e enfant — cadet","07/07/2018"]];
 let members=[],posts=[],me=null;
@@ -53,7 +53,7 @@ async function comment(pid){let e=document.getElementById("c"+pid);if(!e.value.t
 function closeModal(){document.getElementById("modal").classList.remove("show")}
 function login(){if(document.getElementById("pass").value==="DEO")document.getElementById("login").style.display="none";else document.getElementById("err").textContent="Mot de passe incorrect."}
 document.getElementById("pass").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
-async function start(){try{let s=(await sb.auth.getSession()).data.session;if(!s){let a=await sb.auth.signInAnonymously();if(a.error)throw a.error;s=a.data.session}let x=await sb.from("family_members").select("id,name,profile_url").order("id");if(x.error)throw x.error;members=x.data||[];me=members.find(m=>m.name==="Basimire Vumilia Moïse");if(!me)throw Error("Membre Moïse introuvable");renderMembers();status("✅ Supabase connecté — publications, commentaires et réactions sont partagés.");await loadPosts()}catch(e){console.error(e);status("❌ Supabase n'est pas prêt : "+e.message,true)}}
-renderMembers();start();
+async function start(){try{status("🔐 Connexion sécurisée à Supabase…");let a=await Promise.race([sb.auth.signInAnonymously(),new Promise((_,rej)=>setTimeout(()=>rej(Error("Délai de connexion dépassé. Vérifie la connexion Internet ou Supabase Anonymous Sign-Ins.")),12000))]);if(a.error)throw a.error;status("📥 Chargement des membres…");let x=await sb.from("family_members").select("id,name,profile_url").order("id");if(x.error)throw x.error;members=x.data||[];if(!members.length)throw Error("La table family_members est vide.");me=members.find(m=>m.name==="Basimire Vumilia Moïse")||members[0];renderMembers();status("✅ Supabase connecté — publications, commentaires et réactions sont partagés.");await loadPosts()}catch(e){console.error(e);document.getElementById("members").innerHTML=`<div class="empty">❌ ${esc(e.message)}<br><button class="btn primary" onclick="location.reload()">Réessayer</button></div>`;status("❌ Connexion Supabase impossible",true)}}
+renderMembers();document.getElementById("members").innerHTML="<div class="empty">⏳ Chargement des membres…</div>";document.getElementById("posts").innerHTML="<div class="empty">⏳ Chargement des publications…</div>";start();
 </script>
 </body></html>
