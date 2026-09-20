@@ -31,12 +31,31 @@ let sb=null;
 const FAMILY_NAMES=["Déo Vumilia Buuma","Sirire Masirika Francine","Ameshinda Vumilia Alliance","Salama Namwangasa Yvette","Buuma Vumilia Benjamin","ATUKUZWE Vumilia Jonathan","Basimire Vumilia Moïse","Barikiwa Vumilia Angélique","Bwaashi Vumilia Gloire","Chisiki Vumilia Bien-aimé","Furaha Vumilia Noela","Asifiwe Vumilia Victoire"];
 const FAMILY_INFO=[
 ["Père","26/12/1972","Père de la famille, gradué en sciences de l'éducation et enseignant dans une école secondaire."],["Mère","01/03/1978","Mère de la famille, commerçante et cultivatrice."],["Fils aîné","03/11/1996","Fils aîné de la famille. Il est décédé célibataire, après avoir atteint le niveau de Bac 2 en management."],["2e enfant","14/07/2000","Infirmière, graduée de l'Institut Supérieur des Techniques Médicales de Bukavu. Elle est mariée à Justin Ushindi."],["3e fils","10/05/2002","Laborantin, licencié en laboratoire de l'Institut Supérieur des Techniques Médicales de Bukavu."],["4e fils","22/05/2005","Informaticien, licencié de l'Institut Supérieur Pédagogique de Bukavu."],["5e fils","18/09/2007","Économiste, licencié de l'Université Officielle de Bukavu."],["6e fille","20/03/2010","Commercialiste de l'Institut Kando."],["7e fils","16/09/2012","Commercialiste de l'Institut Kando."],["8e fils","16/10/2014","Histoire à compléter…"],["9e fille","26/12/2016","Histoire à compléter…"],["10e enfant — cadet","07/07/2018","Cadet de la famille."]];
-let photos=JSON.parse(localStorage.getItem("deo_photos")||"{}");let currentUser=null,dbMembers=[],posts=[];
+let photos={};let currentUser=null,dbMembers=[],posts=[];
 const membersEl=document.getElementById("members"),postsEl=document.getElementById("posts");
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function avatar(i){return photos[i]||"data:image/svg+xml;charset=UTF-8,"+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="100%" height="100%" fill="#e8edf2"/><text x="50%" y="58%" text-anchor="middle" font-size="82" fill="#123f68">${FAMILY_NAMES[i]?.[0]||"M"}</text></svg>`)}
 function renderMembers(){document.getElementById("count").textContent="("+FAMILY_NAMES.length+")";membersEl.innerHTML=FAMILY_NAMES.map((n,i)=>`<article class="member"><img class="avatar" src="${avatar(i)}" onclick="light('${avatar(i)}')"><h3>${esc(n)}</h3><div class="role">${esc(FAMILY_INFO[i][0])}</div><div class="actions"><button class="btn primary" onclick="photo(${i})">📷 ${photos[i]?"Changer":"Ajouter"}</button><button class="btn" onclick="info(${i})">ℹ️ Profil</button></div></article>`).join("")}
-function photo(i){let x=document.createElement("input");x.type="file";x.accept="image/*";x.onchange=()=>{let f=x.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{photos[i]=r.result;localStorage.setItem("deo_photos",JSON.stringify(photos));renderMembers()};r.readAsDataURL(f)};x.click()}
+function photo(i){
+  if(!sb||!currentUser){alert("Supabase n’est pas encore prêt. Attends quelques secondes puis réessaie.");return}
+  const x=document.createElement("input");x.type="file";x.accept="image/*";
+  x.onchange=async()=>{
+    const f=x.files[0]; if(!f)return;
+    try{
+      const blob=await compressImage(f,900,0.82);
+      const member=dbMembers[i]||dbMembers.find(m=>m.name===FAMILY_NAMES[i]);
+      if(!member)throw new Error("Membre introuvable dans Supabase");
+      const ext="jpg"; const path=`profiles/${member.id}-${Date.now()}.${ext}`;
+      const up=await sb.storage.from("Family-media").upload(path,blob,{contentType:"image/jpeg",upsert:true});
+      if(up.error)throw up.error;
+      const url=sb.storage.from("Family-media").getPublicUrl(path).data.publicUrl;
+      const q=await sb.from("family_members").update({profile_url:url}).eq("id",member.id);
+      if(q.error)throw q.error;
+      photos[i]=url; renderMembers();
+      setStatus("✅ Photo de profil enregistrée en ligne.");
+    }catch(e){console.error(e);alert("La photo n’a pas été enregistrée en ligne. Vérifie la connexion Supabase et le bucket Family-media.");}
+  }; x.click();
+}
 function info(i){let m=FAMILY_INFO[i];modal(`<h2>${esc(FAMILY_NAMES[i])}</h2><p><b>${esc(m[0])}</b> · ${esc(m[1])}</p><p>${esc(m[2])}</p><div class="row"><button class="close" onclick="closeModal()">Fermer</button></div>`)}
 function memberName(id){return dbMembers.find(m=>String(m.id)===String(id))?.name||"Membre"}
 function memberIndex(id){let n=memberName(id);return Math.max(0,FAMILY_NAMES.indexOf(n))}
@@ -45,12 +64,42 @@ async function loadPosts(){if(!sb){posts=[];renderPosts();return}const {data,err
 async function react(postId,reaction){if(!sb||!currentUser?.memberId){alert("Supabase n’est pas disponible pour le moment.");return;}const {data:old}=await sb.from("reactions").select("id,reaction").eq("post_id",postId).eq("member_id",currentUser.memberId).maybeSingle();let result;if(old&&old.reaction===reaction)result=await sb.from("reactions").delete().eq("id",old.id);else if(old)result=await sb.from("reactions").update({reaction}).eq("id",old.id);else result=await sb.from("reactions").insert({post_id:postId,member_id:currentUser.memberId,reaction});if(result?.error)alert("Réaction impossible.");await loadPosts()}
 async function comment(postId){if(!sb||!currentUser?.memberId){alert("Supabase n’est pas disponible pour le moment.");return;}let e=document.getElementById("c"+postId);if(!e||!e.value.trim()||!currentUser?.memberId)return;const {error}=await sb.from("comments").insert({post_id:postId,member_id:currentUser.memberId,content:e.value.trim()});if(error){alert("Impossible d'ajouter le commentaire.");return}e.value="";await loadPosts()}
 function newPost(){modal(`<h2>Nouvelle publication</h2><textarea id="pt" rows="6" placeholder="Écris un message…"></textarea><input id="pf" type="file" accept="image/*"><div class="row"><button class="close" onclick="closeModal()">Annuler</button><button class="save" onclick="addPost()">Publier</button></div>`)}
-async function addPost(){if(!sb||!currentUser?.memberId){alert("Supabase n’est pas disponible pour le moment.");return;}let t=document.getElementById("pt").value.trim(),f=document.getElementById("pf").files[0];if(!t&&!f)return;if(!currentUser?.memberId)return;let imageUrl=null;if(f){const safe=f.name.replace(/[^a-zA-Z0-9._-]/g,"_");const path=`posts/${currentUser.memberId}/${Date.now()}-${safe}`;const up=await sb.storage.from("Family-media").upload(path,f,{upsert:false});if(up.error){alert("La photo n'a pas pu être envoyée. Vérifie le bucket Family-media.");return}imageUrl=sb.storage.from("Family-media").getPublicUrl(path).data.publicUrl}const {error}=await sb.from("posts").insert({member_id:currentUser.memberId,content:t,image_url:imageUrl});if(error){alert("Publication impossible. Vérifie family_members et les règles RLS.");return}closeModal();await loadPosts()}
+async function addPost(){
+  if(!sb||!currentUser?.memberId){alert("Supabase n’est pas disponible pour le moment.");return;}
+  const t=document.getElementById("pt").value.trim(),f=document.getElementById("pf").files[0];
+  if(!t&&!f)return;
+  try{
+    let imageUrl=null;
+    if(f){
+      const blob=await compressImage(f,1600,0.82);
+      const path=`posts/${currentUser.memberId}/${Date.now()}.jpg`;
+      const up=await sb.storage.from("Family-media").upload(path,blob,{contentType:"image/jpeg",upsert:false});
+      if(up.error)throw up.error;
+      imageUrl=sb.storage.from("Family-media").getPublicUrl(path).data.publicUrl;
+    }
+    const q=await sb.from("posts").insert({member_id:currentUser.memberId,content:t,image_url:imageUrl});
+    if(q.error)throw q.error;
+    closeModal(); await loadPosts(); setStatus("✅ Publication enregistrée en ligne.");
+  }catch(e){console.error(e);alert("La publication n’a pas été enregistrée. Vérifie la connexion Supabase et le bucket Family-media.");}
+}
+
+async function compressImage(file,maxSide=1600,quality=0.82){
+  if(!file.type.startsWith("image/"))throw new Error("Le fichier doit être une image.");
+  return await new Promise((resolve,reject)=>{
+    const img=new Image(),url=URL.createObjectURL(file);
+    img.onload=()=>{
+      let w=img.naturalWidth,h=img.naturalHeight; const scale=Math.min(1,maxSide/Math.max(w,h));
+      w=Math.max(1,Math.round(w*scale));h=Math.max(1,Math.round(h*scale));
+      const c=document.createElement("canvas");c.width=w;c.height=h;const ctx=c.getContext("2d");ctx.drawImage(img,0,0,w,h);
+      c.toBlob(b=>{URL.revokeObjectURL(url);b?resolve(b):reject(new Error("Compression impossible"));},"image/jpeg",quality);
+    }; img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Image illisible"));}; img.src=url;
+  });
+}
 function setStatus(text,bad=false){let s=document.getElementById("status");s.textContent=text;s.className="status"+(bad?" bad":"")}
 function modal(h){document.getElementById("box").innerHTML=h;document.getElementById("modal").classList.add("show")}function closeModal(){document.getElementById("modal").classList.remove("show")}function light(src){document.getElementById("lightImg").src=src;document.getElementById("light").classList.add("show")}function closeLight(){document.getElementById("light").classList.remove("show")}
 function login(){if(document.getElementById("pass").value==="DEO")document.getElementById("login").style.display="none";else document.getElementById("err").textContent="Mot de passe incorrect."}document.getElementById("pass").addEventListener("keydown",e=>{if(e.key==="Enter")login()});
 function loadSupabaseLibrary(){return new Promise((resolve,reject)=>{if(window.supabase){resolve();return}const tag=document.createElement("script");tag.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2";tag.async=true;tag.onload=resolve;tag.onerror=()=>reject(new Error("Bibliothèque Supabase inaccessible"));document.head.appendChild(tag);setTimeout(()=>reject(new Error("Délai de connexion dépassé")),10000)})}
-async function startSupabase(){try{await loadSupabaseLibrary();sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);let session=(await sb.auth.getSession()).data.session;if(!session){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session}const q=await sb.from("family_members").select("id,name").order("id");if(q.error)throw q.error;dbMembers=q.data||[];const wanted="Basimire Vumilia Moïse";const mine=dbMembers.find(m=>m.name===wanted)||dbMembers[0];if(!mine)throw new Error("Aucun membre trouvé dans family_members.");currentUser={authId:session.user.id,memberId:mine.id};setStatus("✅ Supabase connecté — publications, commentaires et réactions sont partagés.");await loadPosts()}catch(e){console.error(e);setStatus("⚠️ Site ouvert — Supabase est temporairement indisponible. Le site peut quand même être consulté.",true)}}
+async function startSupabase(){try{await loadSupabaseLibrary();sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);let session=(await sb.auth.getSession()).data.session;if(!session){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session}const q=await sb.from("family_members").select("id,name,profile_url").order("id");if(q.error)throw q.error;dbMembers=q.data||[];dbMembers.forEach(m=>{const i=FAMILY_NAMES.indexOf(m.name);if(i>=0&&m.profile_url)photos[i]=m.profile_url;});const wanted="Basimire Vumilia Moïse";const mine=dbMembers.find(m=>m.name===wanted)||dbMembers[0];if(!mine)throw new Error("Aucun membre trouvé dans family_members.");currentUser={authId:session.user.id,memberId:mine.id};renderMembers();setStatus("✅ Supabase connecté — données et photos sont partagées en ligne.");await loadPosts()}catch(e){console.error(e);setStatus("⚠️ Site ouvert — Supabase est temporairement indisponible. Réessaie dans quelques secondes.",true)}}
 renderMembers();startSupabase();
 </script>
 </body></html>

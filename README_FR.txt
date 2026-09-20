@@ -24,3 +24,5 @@ IMPORTANT
 - Le projet Supabase est qhlrbzqlivkaiydfkkqg
 - Ne supprime pas famille-banner.jpg dans GitHub : le site actuel peut l'utiliser.
 - Le script SQL est à exécuter dans Supabase > SQL Editor.
+
+CORRECTION 20/09/2026 : photos de profil et photos de publications envoyées dans Supabase Storage Family-media; URLs conservées dans Supabase; compression automatique; rechargement après envoi. Exécuter le SQL fourni avant de remplacer index.html.
