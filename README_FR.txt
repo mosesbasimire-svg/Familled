@@ -1,28 +1,14 @@
-FAMILLED — VERSION SITE + SUPABASE EN LIGNE
+NOTRE FAMILLE — PROJET ANDROID PRÊT À CONSTRUIRE
 
-Cette archive contient uniquement ce qui sert au site familial.
+Ce projet transforme le site familial fourni en application Android WebView.
+Le contenu local est app/src/main/assets/index.html et utilise Supabase en ligne.
 
-CONTENU
-- index.html : site web
-- supabase.sql : configuration complète et relançable de Supabase
-- Familled_SUPABASE_FINAL.sql : copie du même script
+Pour construire l'APK:
+1. Envoyer tout le contenu de ce dossier dans un dépôt GitHub.
+2. Aller dans Actions.
+3. Choisir « Construire APK Android ».
+4. Cliquer « Run workflow ».
+5. Après la fin du workflow, ouvrir l'exécution et télécharger l'artefact « Notre-Famille-APK ».
 
-DONNEES CONSERVEES EN LIGNE DANS SUPABASE
-- membres de la famille
-- publications
-- commentaires
-- réactions
-- photos de profil
-- photos des publications
-
-STOCKAGE
-Le bucket Family-media est réservé aux médias du site familial.
-Aucun espace général de fichiers personnels n'est créé.
-
-IMPORTANT
-- Le mot de passe du site reste : DEO
-- Le projet Supabase est qhlrbzqlivkaiydfkkqg
-- Ne supprime pas famille-banner.jpg dans GitHub : le site actuel peut l'utiliser.
-- Le script SQL est à exécuter dans Supabase > SQL Editor.
-
-CORRECTION 20/09/2026 : photos de profil et photos de publications envoyées dans Supabase Storage Family-media; URLs conservées dans Supabase; compression automatique; rechargement après envoi. Exécuter le SQL fourni avant de remplacer index.html.
+Mot de passe du site: DEO
+Application: Notre Famille
